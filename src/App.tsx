@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import AdminDashboard from './components/admin/AdminDashboard';
-import CreateElection from './components/admin/CreateElection';
-import VotingPage from './components/voting/VotingPage';
 import { Toaster } from 'sonner';
 import { ethers } from 'ethers';
 import { CONTRACT_ADDRESS, contractInterface } from './contracts/contractInterface';
 import './index.css';
 import './App.css';
 import { Election } from './types/election';
-import { toast } from 'sonner';
+
 import AddCandidatePage from './components/admin/AddCandidatePage';
 import LandingPage from './components/LandingPage';
+import AdminDashboard from './components/admin/AdminDashboard';
+import CreateElection from './components/admin/CreateElection';
+import VotingPage from './components/voting/VotingPage';
+import AdminLogin from './components/auth/AdminLogin';
+import VoterLogin from './components/auth/VoterLogin';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+import ElectionResults from './components/admin/ElectionResults';
 
 function App() {
   return (
@@ -169,19 +173,49 @@ function AppContent() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Toaster position="top-right" />
+        <Toaster position="top-right" richColors />
         <Routes>
           {/* Main Landing Page */}
           <Route path="/" element={<LandingPage />} />
           
           {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard elections={elections} onElectionCreated={fetchElections} />} />
-          <Route path="/admin/create-election" element={<CreateElection onElectionCreated={fetchElections} />} />
-          <Route path="/admin/add-candidate/:electionId" element={<AddCandidatePage onElectionCreated={fetchElections} />} />
+          <Route path="/admin" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard elections={elections} onElectionCreated={fetchElections} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin/create-election" element={
+            <ProtectedRoute requiredRole="admin">
+              <CreateElection onElectionCreated={fetchElections} />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/add-candidate/:electionId" element={
+            <ProtectedRoute requiredRole="admin">
+              <AddCandidatePage onElectionCreated={fetchElections} />
+            </ProtectedRoute>
+          } />
+          <Route 
+            path="/admin/election/:id/results" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ElectionResults />
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Voter Routes */}
-          <Route path="/vote" element={<VotingPage />} />
-          <Route path="/vote/:electionId" element={<VotingPage />} />
+          <Route path="/vote" element={
+            <ProtectedRoute requiredRole="voter">
+              <VotingPage />
+            </ProtectedRoute>
+          } />
+          <Route path="/vote/login" element={<VoterLogin />} />
+          <Route path="/vote/:electionId" element={
+            <ProtectedRoute requiredRole="voter">
+              <VotingPage />
+            </ProtectedRoute>
+          } />
           
           {/* Fallback route */}
           <Route path="*" element={<Navigate to="/" replace />} />

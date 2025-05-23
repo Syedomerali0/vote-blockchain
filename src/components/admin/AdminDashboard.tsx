@@ -45,8 +45,21 @@ export default function AdminDashboard({ elections, onElectionCreated }: AdminDa
   }, [processedElections]);
 
   const inactiveElections = useMemo(() => {
-    return processedElections.filter(election => !election.is_active);
+    return processedElections
+      .filter(election => !election.is_active)
+      .sort((a, b) => b.end_time - a.end_time);
   }, [processedElections]);
+
+
+  const handleViewResults = (election: Election) => {
+    navigate(`/admin/election/${election.id}/results`, { 
+      state: { 
+        title: election.title,
+        department: election.department,
+        description: election.description
+      } 
+    });
+  };
 
   const handleCloseElection = async (electionId: string) => {
     try {
@@ -155,27 +168,21 @@ export default function AdminDashboard({ elections, onElectionCreated }: AdminDa
           </span>
           
           <div className="space-x-2">
-            <button
-              onClick={() => navigate(`/admin/add-candidate/${election.id}`)}
-              className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                shouldBeActive 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500' 
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-              disabled={!shouldBeActive}
-            >
-              Manage Candidate
-            </button>
-            
-            {/* {shouldBeActive && (
+            {shouldBeActive ? (
               <button
-                onClick={() => handleCloseElection(election.id)}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                disabled={loading}
+                onClick={() => navigate(`/admin/add-candidate/${election.id}`)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               >
-                {loading ? 'Closing...' : 'Close Election'}
+                Manage Candidate
               </button>
-            )} */}
+            ) : (
+              <button
+                onClick={() => handleViewResults(election)}
+                className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+              >
+                View Results
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -207,7 +214,14 @@ export default function AdminDashboard({ elections, onElectionCreated }: AdminDa
         </section>
 
         <section>
-          <h2 className="text-2xl font-semibold mb-4">Inactive Elections</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold">Inactive Elections</h2>
+            {inactiveElections.length > 0 && (
+              <p className="text-sm text-gray-500">
+                {inactiveElections.length} inactive election{inactiveElections.length !== 1 ? 's' : ''}
+              </p>
+            )}
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {inactiveElections.length > 0 ? (
               inactiveElections.map(election => renderElectionCard(election, false))

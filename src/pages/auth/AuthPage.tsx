@@ -1,5 +1,4 @@
-import LoginForm from "@/components/auth/LoginForm";
-import RegisterForm from "@/components/auth/RegisterForm";
+
 import { useLocation } from 'react-router-dom';
 
 
@@ -23,7 +22,7 @@ export function AuthPage() {
           Sign Up
         </button>
       </div>
-      {isLogin ? <LoginForm /> : <RegisterForm />}
+      
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ethers } from 'ethers';
 
 interface AuthContextType {
@@ -6,9 +6,19 @@ interface AuthContextType {
   walletAddress: string | null;
   isCustUser: boolean;
   connectWallet: () => Promise<void>;
+  isAuthenticated: boolean;
+  userType: 'admin' | 'voter' | null;
+  login: (type: 'admin' | 'voter', password: string) => boolean;
+  logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Simple password storage - in a real app, this would be handled by a backend
+const PASSWORDS = {
+  admin: 'admin123',
+  voter: 'vote123'
+};
 
 export function useAuth() {
   const context = useContext(AuthContext);
@@ -18,10 +28,12 @@ export function useAuth() {
   return context;
 }
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export function AuthProvider({ children }: { children: ReactNode }) {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [isCustUser, setIsCustUser] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [userType, setUserType] = useState<'admin' | 'voter' | null>(null);
 
   const connectWallet = async () => {
     try {
@@ -48,6 +60,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error connecting wallet:', error);
       throw error;
     }
+  };
+
+  const login = (type: 'admin' | 'voter', password: string): boolean => {
+    if (PASSWORDS[type] === password) {
+      setIsAuthenticated(true);
+      setUserType(type);
+      localStorage.setItem('auth', JSON.stringify({ type, isAuthenticated: true }));
+      return true;
+    }
+    return false;
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    setUserType(null);
+    localStorage.removeItem('auth');
   };
 
   useEffect(() => {
@@ -77,6 +105,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       walletAddress,
       isCustUser,
       connectWallet,
+      isAuthenticated,
+      userType,
+      login,
+      logout,
     }}>
       {children}
     </AuthContext.Provider>

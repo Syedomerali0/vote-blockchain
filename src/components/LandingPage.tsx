@@ -13,7 +13,7 @@ const LandingPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
         {/* Admin Card */}
         <div 
-          onClick={() => navigate('/admin')}
+          onClick={() => navigate('/admin/login')}
           className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all hover:scale-105 hover:shadow-xl"
         >
           <div className="p-8">
@@ -33,7 +33,7 @@ const LandingPage = () => {
 
         {/* Voter Card */}
         <div 
-          onClick={() => navigate('/vote')}
+          onClick={() => navigate('/vote/login')}
           className="bg-white rounded-xl shadow-lg overflow-hidden cursor-pointer transform transition-all hover:scale-105 hover:shadow-xl"
         >
           <div className="p-8">
